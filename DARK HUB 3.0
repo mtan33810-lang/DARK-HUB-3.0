@@ -486,7 +486,6 @@ end)
 local autoCollectEnabled = false
 local autoCollectAll = false
 local autoCollectSelectedPlants = false
-local autoCollectMutations = false
 
 local selectedCollectPlants = {}
 local selectedMutations = {}
@@ -1440,74 +1439,6 @@ AutomaticallyTab:CreateInput({
         end
 
         CollectPlantDropdown:Refresh(filtered)
-    end
-})
-
-AutomaticallyTab:CreateSection("AUTO COLLECT MUTATED PLANTS")
-
-AutomaticallyTab:CreateToggle({
-    Name = "Auto Collect Selected Mutations",
-    CurrentValue = false,
-    Flag = "AutoCollectMutations",
-
-    Callback = function(Value)
-        autoCollectMutations = Value
-        autoCollectEnabled =
-            autoCollectAll
-            or autoCollectSelectedPlants
-            or autoCollectMutations
-    end
-})
-
-local MutationDropdown = AutomaticallyTab:CreateDropdown({
-    Name = "Select Mutations",
-    Options = ALL_MUTATIONS,
-    CurrentOption = {},
-    MultipleOptions = true,
-    Flag = "SelectedMutations",
-
-    Callback = function(Value)
-        selectedMutations =
-            convertSelection(Value)
-    end
-})
-
-AutomaticallyTab:CreateInput({
-    Name = "Search Mutation",
-    PlaceholderText = "Type mutation name...",
-    RemoveTextAfterFocusLost = false,
-    Flag = "MutationSearch",
-
-    Callback = function(Text)
-        local filtered = {}
-        local search = string.lower(Text)
-
-        if search == "" then
-            filtered = ALL_MUTATIONS
-        else
-            for _, mutation in ipairs(ALL_MUTATIONS) do
-                if string.find(string.lower(mutation), search, 1, true) then
-                    table.insert(filtered, mutation)
-                end
-            end
-        end
-
-        MutationDropdown:Refresh(filtered)
-    end
-})
-
-AutomaticallyTab:CreateButton({
-    Name = "Clear All Selections",
-    Callback = function()
-        selectedCollectPlants = {}
-        selectedMutations = {}
-        selectedWaterPlants = {}
-
-        Rayfield:Notify({
-            Title = "Selections Cleared",
-            Content = "All plant and mutation selections were cleared.",
-            Duration = 2
-        })
     end
 })
 
