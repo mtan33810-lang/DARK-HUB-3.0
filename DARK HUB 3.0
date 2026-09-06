@@ -1,5 +1,5 @@
 --============================================================
--- DARK HUB 2.0 (UPDATED)
+-- DARK HUB 3.0 (UPDATED)
 -- Fixes applied:
 --   1. Auto Collect Mutated Plants logic fix (OR condition)
 --   2. Mutation Search dynamic list filtering fix
@@ -1374,7 +1374,7 @@ AutomaticallyTab:CreateDropdown({
     end
 })
 
-AutomaticallyTab:CreateDropdown({
+local WaterPlantDropdown = AutomaticallyTab:CreateDropdown({
     Name = "Select Plants To Water",
     Options = getUniquePlantNames(),
     CurrentOption = {},
@@ -1382,26 +1382,23 @@ AutomaticallyTab:CreateDropdown({
     Flag = "SelectedWaterPlants",
 
     Callback = function(Value)
-        selectedWaterPlants =
-            convertSelection(Value)
+        selectedWaterPlants = convertSelection(Value)
     end
 })
 
 AutomaticallyTab:CreateButton({
     Name = "Refresh Plant List",
+
     Callback = function()
-        local Dropdown = AutomaticallyTab:CreateDropdown({
-            Name = "Temporary",
-            Options = getUniquePlantNames(),
-            CurrentOption = {},
-            MultipleOptions = true
+        local plants = getUniquePlantNames()
+
+        WaterPlantDropdown:Refresh(plants)
+
+        Rayfield:Notify({
+            Title = "Plant List Refreshed",
+            Content = "Found " .. tostring(#plants) .. " plant types.",
+            Duration = 2
         })
-
-        task.wait()
-
-        if Dropdown then
-            Dropdown:Set(getUniquePlantNames())
-        end
     end
 })
 
