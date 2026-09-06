@@ -493,6 +493,31 @@ local collectionRadius = 100
 local collectCooldown = 0.1
 
 --============================================================
+-- PLANT MATCHER
+--============================================================
+
+local function matchesPlant(Plant)
+    if not Plant then
+        return false
+    end
+
+    if autoCollectAll then
+        return true
+    end
+
+    if not autoCollectSelectedPlants then
+        return false
+    end
+
+    local Name = getPlantName(Plant)
+
+    return selectionContains(
+        selectedCollectPlants,
+        Name
+    )
+end
+
+--============================================================
 -- COLLECT REMOTE EXECUTION
 --============================================================
 
@@ -507,7 +532,7 @@ local function getNearbyCollectPlants()
     local Result = {}
     local Seen = {}
 
-    -- Each direct child is treated as ONE plant
+    -- Each direct child is ONE plant
     for _, Plant in ipairs(PlantsPhysical:GetChildren()) do
 
         if Plant:IsA("Model") or Plant:IsA("BasePart") then
@@ -515,23 +540,9 @@ local function getNearbyCollectPlants()
             if not Seen[Plant] then
                 Seen[Plant] = true
 
-                local plantMatched = false
-                local mutationMatched = false
-
-                -- Plant selection
-                if autoCollectAll then
-                    plantMatched = true
-                elseif autoCollectSelectedPlants then
-                    plantMatched = matchesPlant(Plant)
-                end
-
-                -- Mutation selection
-                if autoCollectMutations then
-                    mutationMatched = matchesMutation(Plant)
-                end
-
-                -- Either plant OR mutation can qualify
-                if plantMatched or mutationMatched then
+                -- Only plant selection is used.
+                -- Mutation auto-collect has been removed.
+                if matchesPlant(Plant) then
 
                     local Position = getPlantPosition(Plant)
 
