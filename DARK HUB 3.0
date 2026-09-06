@@ -550,47 +550,6 @@ end
 -- COLLECT REMOTE EXECUTION
 --============================================================
 
-local function getCollectRemote()
-    local Crops = GameEvents:FindFirstChild("Crops")
-
-    if Crops then
-        local Collect = Crops:FindFirstChild("Collect")
-
-        if Collect then
-            return Collect
-        end
-    end
-
-    return nil
-end
-
-local function collectPlant(Plant)
-    if not Plant then
-        return
-    end
-
-    -- Preferred developer-game collect remote
-    local CollectRemote = getCollectRemote()
-
-    if CollectRemote then
-        CollectRemote:FireServer({
-            Plant
-        })
-
-        return
-    end
-
-    -- Fallback for plants using ProximityPrompts
-    local Prompt = Plant:FindFirstChildWhichIsA(
-        "ProximityPrompt",
-        true
-    )
-
-    if Prompt and fireproximityprompt then
-        fireproximityprompt(Prompt)
-    end
-end
-
 local function getNearbyCollectPlants()
     local PlantsPhysical = getPlantsPhysical()
     local RootPart = getRootPart()
@@ -602,38 +561,44 @@ local function getNearbyCollectPlants()
     local Result = {}
     local Seen = {}
 
-    for _, Object in ipairs(PlantsPhysical:GetDescendants()) do
-        local Plant = Object
+    -- Each direct child is treated as ONE plant
+    for _, Plant in ipairs(PlantsPhysical:GetChildren()) do
 
-        if Object:IsA("Model") then
-            Plant = Object
-        elseif Object:IsA("BasePart") then
-            Plant = Object:FindFirstAncestorOfClass("Model")
-        end
+        if Plant:IsA("Model") or Plant:IsA("BasePart") then
 
-        if Plant
-            and Plant ~= PlantsPhysical
-            and not Seen[Plant]
-            and Plant:IsDescendantOf(PlantsPhysical)
-        then
-            Seen[Plant] = true
+            if not Seen[Plant] then
+                Seen[Plant] = true
 
-            -- FIX: Evaluate matches independently and combine using OR condition
-            local plantMatched = (autoCollectAll or autoCollectSelectedPlants) and matchesPlant(Plant)
-            local mutationMatched = autoCollectMutations and matchesMutation(Plant)
+                local plantMatched = false
+                local mutationMatched = false
 
-            if plantMatched or mutationMatched then
-                local Position = getPlantPosition(Plant)
+                -- Plant selection
+                if autoCollectAll then
+                    plantMatched = true
+                elseif autoCollectSelectedPlants then
+                    plantMatched = matchesPlant(Plant)
+                end
 
-                if Position then
-                    local Distance =
-                        (RootPart.Position - Position).Magnitude
+                -- Mutation selection
+                if autoCollectMutations then
+                    mutationMatched = matchesMutation(Plant)
+                end
 
-                    if Distance <= collectionRadius then
-                        table.insert(Result, {
-                            Object = Plant,
-                            Distance = Distance
-                        })
+                -- Either plant OR mutation can qualify
+                if plantMatched or mutationMatched then
+
+                    local Position = getPlantPosition(Plant)
+
+                    if Position then
+                        local Distance =
+                            (RootPart.Position - Position).Magnitude
+
+                        if Distance <= collectionRadius then
+                            table.insert(Result, {
+                                Object = Plant,
+                                Distance = Distance
+                            })
+                        end
                     end
                 end
             end
@@ -646,24 +611,6 @@ local function getNearbyCollectPlants()
 
     return Result
 end
-
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-
-        if autoCollectEnabled then
-            for _, Data in ipairs(getNearbyCollectPlants()) do
-                if not autoCollectEnabled then
-                    break
-                end
-
-                collectPlant(Data.Object)
-
-                task.wait(collectCooldown)
-            end
-        end
-    end
-end)
 
 --============================================================
 -- HOME TAB
