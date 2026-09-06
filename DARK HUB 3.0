@@ -1367,7 +1367,7 @@ AutomaticallyTab:CreateSlider({
     Range = {0.05, 2},
     Increment = 0.05,
     Suffix = " sec",
-    CurrentValue = 0.2,
+    CurrentValue = 0.5,
     Flag = "WaterSpeed",
 
     Callback = function(Value)
