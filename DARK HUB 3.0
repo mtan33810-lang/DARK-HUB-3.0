@@ -488,62 +488,9 @@ local autoCollectAll = false
 local autoCollectSelectedPlants = false
 
 local selectedCollectPlants = {}
-local selectedMutations = {}
 
 local collectionRadius = 100
 local collectCooldown = 0.1
-
---============================================================
--- MUTATION CHECKERS
---============================================================
-
-local function getMutation(Plant)
-    if not Plant then
-        return ""
-    end
-
-    local Mutation = Plant:GetAttribute("Mutation")
-
-    if Mutation then
-        return tostring(Mutation)
-    end
-
-    local MutationValue = Plant:FindFirstChild("Mutation")
-
-    if MutationValue and MutationValue:IsA("StringValue") then
-        return MutationValue.Value
-    end
-
-    return ""
-end
-
-local function matchesMutation(Plant)
-    if not autoCollectMutations then
-        return false
-    end
-
-    local Mutation = getMutation(Plant)
-
-    if Mutation == "" then
-        return false
-    end
-
-    return selectionContains(selectedMutations, Mutation)
-end
-
-local function matchesPlant(Plant)
-    if autoCollectAll then
-        return true
-    end
-
-    if not autoCollectSelectedPlants then
-        return false
-    end
-
-    local Name = getPlantName(Plant)
-
-    return selectionContains(selectedCollectPlants, Name)
-end
 
 --============================================================
 -- COLLECT REMOTE EXECUTION
@@ -1389,8 +1336,7 @@ AutomaticallyTab:CreateToggle({
         autoCollectAll = Value
         autoCollectEnabled =
             autoCollectAll
-            or autoCollectSelectedPlants
-            or autoCollectMutations
+            or autoCollectSelectedPlant
     end
 })
 
@@ -1404,7 +1350,6 @@ AutomaticallyTab:CreateToggle({
         autoCollectEnabled =
             autoCollectAll
             or autoCollectSelectedPlants
-            or autoCollectMutations
     end
 })
 
